@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fullscreen Image</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; overflow: hidden; }
+        .fullscreen-image {
+            width: 100vw;
+            height: 100vh;
+            background: url('./bg.png') center/cover no-repeat;
+            cursor: pointer;
+            position: relative;
+        }
+        .popup-box {
+            position: absolute;
+            display: none;
+            background: url('./page1.png') center/cover no-repeat;
+            width: 301px;
+            height: 163px;
+        }
+        .circle-button {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            
+            border-radius: 50%;
+            cursor: pointer;
+            top: 50%;
+            left: 65%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+transform:translate(-50%, -50%);
+display:none;
+        }
+        .popup-box-2 {
+            position: absolute;
+            display: none;
+            background: url('./page2.png') center/cover no-repeat;
+            width: 300px;
+            height: 300px;
+            top: 100px;
+            left: 100px;
+        }
+.input-box {
+display:none;
+top:45.5%;
+left:41%;
+transform:translate(-50%, -50%);
+    width: 270px;
+    height: 35px;
+    border: none; 
+    background-color: transparent; /* No background */
+    font-size: 26px;
+font-weight:bold;
+    padding-left: 5px; /* To give a little space from the border */
+    text-align: left;
+ z-index: 100; /* Set z-index to 1 */
+    position: absolute; /* Position must be set for z-index to work */
+}
+.input-box:focus {
+    outline: none;
+}
+    </style>
+</head>
+<body>
+    <div class="fullscreen-image" onclick="goFullscreen()"></div>
+    <div class="popup-box" id="popup"></div>
+<div id="showattscreen" class="circle-button" onclick="showLoadingPopup()"></div>
+    <div class="popup-box-2" id="popup2"></div>
+        <input type="text" id="inputBox" class="input-box" maxlength="18" value="12443 - ">
+        <div style="display:none">
+            <img id="imgFinger" src="" alt="Finger Image">
+                    <table width="100%">
+                        <tr>
+                            <td width="220px">
+                                Status:
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtStatus" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Quality:
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtImageInfo" class="form-control" />
+                            </td>
+                        </tr>
+                        <!--<tr>
+                            <td>
+                                NFIQ:
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtNFIQ" class="form-control" />
+                            </td>
+                        </tr>-->
+                        <tr>
+                            <td>
+                                Base64Encoded ISO Template
+                            </td>
+                            <td>
+                                <textarea id="txtIsoTemplate" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Base64Encoded ANSI Template
+                            </td>
+                            <td>
+                                <textarea id="txtAnsiTemplate" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Base64Encoded ISO Image
+                            </td>
+                            <td>
+                                <textarea id="txtIsoImage" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Base64Encoded Raw Data
+                            </td>
+                            <td>
+                                <textarea id="txtRawData" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Base64Encoded Wsq Image Data
+                            </td>
+                            <td>
+                                <textarea id="txtWsqData" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr style="display:none">
+                            <td>
+                                Encrypted Base64Encoded Pid/Rbd
+                            </td>
+                            <td>
+                                <textarea id="txtPid" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                        <tr style="display:none">
+                            <td>
+                                Encrypted Base64Encoded Session Key
+                            </td>
+                            <td>
+                                <textarea id="txtSessionKey" style="width: 100%; height:50px;" class="form-control"> </textarea>
+                            </td>
+                        </tr>
+                       <tr style="display:none">
+                            <td>
+                                Encrypted Base64Encoded Hmac
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtHmac" class="form-control" />
+            
+                            </td>
+                        </tr>
+                       <tr style="display:none">
+                            <td>
+                                Ci
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtCi" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr style="display:none">
+                            <td>
+                                Pid/Rbd Ts
+                            </td>
+                            <td>
+                                <input type="text" value="" id="txtPidTs" class="form-control" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            
+ 
+        //script to initiate capture
+   
+   <script src="jquery-1.8.2.js"></script>
+       <script src="mfs100.js"></script>
+       <script language="javascript" type="text/javascript">
+  
+   
+           var quality = 60; //(1 to 100) (recommanded minimum 55)
+           var timeout = 10; // seconds (minimum=10(recommanded), maximum=60, unlimited=0 )
+           var nooffinger = '1';
+           function GetInfo() {
+               document.getElementById('tdSerial').innerHTML = "";
+               document.getElementById('tdCertification').innerHTML = "";
+               document.getElementById('tdMake').innerHTML = "";
+               document.getElementById('tdModel').innerHTML = "";
+               document.getElementById('tdWidth').innerHTML = "";
+               document.getElementById('tdHeight').innerHTML = "";
+               document.getElementById('tdLocalMac').innerHTML = "";
+               document.getElementById('tdLocalIP').innerHTML = "";
+               document.getElementById('tdSystemID').innerHTML = "";
+               document.getElementById('tdPublicIP').innerHTML = "";
+   
+   
+               var key = document.getElementById('txtKey').value;
+               var res;
+               if (key.length == 0) {
+                   res = GetMFS100Info();
+               }
+               else {
+                   //alert("GetMFS100KeyInfo");
+                   res = GetMFS100KeyInfo(key);
+               }
+   
+               if (res.httpStaus) {
+   
+                   document.getElementById('txtStatus').value = "ErrorCode: " + res.data.ErrorCode + " ErrorDescription: " + res.data.ErrorDescription;
+   
+                   if (res.data.ErrorCode == "0") {
+                       document.getElementById('tdSerial').innerHTML = res.data.DeviceInfo.SerialNo;
+                       document.getElementById('tdCertification').innerHTML = res.data.DeviceInfo.Certificate;
+                       document.getElementById('tdMake').innerHTML = res.data.DeviceInfo.Make;
+                       document.getElementById('tdModel').innerHTML = res.data.DeviceInfo.Model;
+                       document.getElementById('tdWidth').innerHTML = res.data.DeviceInfo.Width;
+                       document.getElementById('tdHeight').innerHTML = res.data.DeviceInfo.Height;
+                       document.getElementById('tdLocalMac').innerHTML = res.data.DeviceInfo.LocalMac;
+                       document.getElementById('tdLocalIP').innerHTML = res.data.DeviceInfo.LocalIP;
+                       document.getElementById('tdSystemID').innerHTML = res.data.DeviceInfo.SystemID;
+                       document.getElementById('tdPublicIP').innerHTML = res.data.DeviceInfo.PublicIP;
+                   }
+               }
+               else {
+                   alert(res.err);
+               }
+               return false;
+           }
+           
+            //Devyang Multi Finger Capture
+           function MultiFingerCapture() {
+               try {
+                     document.getElementById('txtStatus').value = "";
+                   document.getElementById('imgFinger').src = "data:image/bmp;base64,";
+                   document.getElementById('txtImageInfo').value = "";
+                   document.getElementById('txtIsoTemplate').value = "";
+                   document.getElementById('txtAnsiTemplate').value = "";
+                   document.getElementById('txtIsoImage').value = "";
+                   document.getElementById('txtRawData').value = "";
+                   document.getElementById('txtWsqData').value = "";
+   
+                   nooffinger = document.getElementById('txtNoOfFinger').value;
+   
+                   var res = CaptureMultiFinger(quality, timeout, nooffinger);
+                 
+                   if (res.httpStaus) {
+   
+                       document.getElementById('txtStatus').value = "ErrorCode: " + res.data.ErrorCode + " ErrorDescription: " + res.data.ErrorDescription;
+   
+                       if (res.data.ErrorCode == "0") {
+                           //document.getElementById('imgFinger').src = "data:image/bmp;base64," + res.data.BitmapData;
+                           //document.getElementById('txtQuality').value = res.data.Quality;
+                           //document.getElementById('txtNFIQ').value = res.data.Nfiq;
+                           document.getElementById('txtIsoTemplate').value = res.data.IsoTemplate;
+                          // document.getElementById('txtAnsiTemplate').value = res.data.AnsiTemplate;
+                           //document.getElementById('txtIsoImage').value = res.data.IsoImage;
+                           //document.getElementById('txtRawData').value = res.data.RawData;
+                           //document.getElementById('txtWsqData').value = res.data.WsqImage;
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+           }
+   
+           //
+   function Capture() {
+       try {
+           document.getElementById('txtStatus').value = "";
+           document.getElementById('imgFinger').src = "data:image/bmp;base64,";
+           document.getElementById('txtImageInfo').value = "";
+           document.getElementById('txtIsoTemplate').value = "";
+           document.getElementById('txtAnsiTemplate').value = "";
+           document.getElementById('txtIsoImage').value = "";
+           document.getElementById('txtRawData').value = "";
+           document.getElementById('txtWsqData').value = "";
+   
+           var res = CaptureFinger(quality, timeout); // Assuming this function captures data from the biometric device
+           if (res.httpStaus) {
+               document.getElementById('txtStatus').value = "ErrorCode: " + res.data.ErrorCode + " ErrorDescription: " + res.data.ErrorDescription;
+   
+               if (res.data.ErrorCode == "0") {
+                   document.getElementById('imgFinger').src = "data:image/bmp;base64," + res.data.BitmapData;
+                   var imageinfo = "Quality: " + res.data.Quality + " Nfiq: " + res.data.Nfiq + " W(in): " + res.data.InWidth + " H(in): " + res.data.InHeight + " area(in): " + res.data.InArea + " Resolution: " + res.data.Resolution + " GrayScale: " + res.data.GrayScale + " Bpp: " + res.data.Bpp + " WSQCompressRatio: " + res.data.WSQCompressRatio + " WSQInfo: " + res.data.WSQInfo;
+                   document.getElementById('txtImageInfo').value = imageinfo;
+                   document.getElementById('txtIsoTemplate').value = res.data.IsoTemplate;
+                   document.getElementById('txtAnsiTemplate').value = res.data.AnsiTemplate;
+                   document.getElementById('txtIsoImage').value = res.data.IsoImage;
+                   document.getElementById('txtRawData').value = res.data.RawData;
+                   document.getElementById('txtWsqData').value = res.data.WsqImage;
+   
+                   // Show the popup
+                   status('success.jpg');
+               }
+   
+           } else {
+   
+               alert(res.err);
+   
+           }
+       } catch (e) {
+          
+   alert(e);
+       }
+   
+       return false;
+   
+   }
+   
+           function Verify() {
+               try {
+                   var isotemplate = document.getElementById('txtIsoTemplate').value;
+                   var res = VerifyFinger(isotemplate, isotemplate);
+   
+                   if (res.httpStaus) {
+                       if (res.data.Status) {
+                           alert("Finger matched");
+                       }
+                       else {
+                           if (res.data.ErrorCode != "0") {
+                               alert(res.data.ErrorDescription);
+                           }
+                           else {
+                               alert("Finger not matched");
+                           }
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+   
+           }
+   
+           function Match() {
+               try {
+                   var isotemplate = document.getElementById('txtIsoTemplate').value;
+                   var res = MatchFinger(quality, timeout, isotemplate);
+   
+                   if (res.httpStaus) {
+                       if (res.data.Status) {
+                           alert("Finger matched");
+                       }
+                       else {
+                           if (res.data.ErrorCode != "0") {
+                               alert(res.data.ErrorDescription);
+                           }
+                           else {
+                               alert("Finger not matched");
+                           }
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+   
+           }
+   
+           function GetPid() {
+               try {
+                   var isoTemplateFMR = document.getElementById('txtIsoTemplate').value;
+                   var isoImageFIR = document.getElementById('txtIsoImage').value;
+   
+                   var Biometrics = Array(); // You can add here multiple FMR value
+                   Biometrics["0"] = new Biometric("FMR", isoTemplateFMR, "UNKNOWN", "", "");
+   
+                   var res = GetPidData(Biometrics);
+                   if (res.httpStaus) {
+                       if (res.data.ErrorCode != "0") {
+                           alert(res.data.ErrorDescription);
+                       }
+                       else {
+                           document.getElementById('txtPid').value = res.data.PidData.Pid
+                           document.getElementById('txtSessionKey').value = res.data.PidData.Sessionkey
+                           document.getElementById('txtHmac').value = res.data.PidData.Hmac
+                           document.getElementById('txtCi').value = res.data.PidData.Ci
+                           document.getElementById('txtPidTs').value = res.data.PidData.PidTs
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+   
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+           }
+           function GetProtoPid() {
+               try {
+                   var isoTemplateFMR = document.getElementById('txtIsoTemplate').value;
+                   var isoImageFIR = document.getElementById('txtIsoImage').value;
+   
+                   var Biometrics = Array(); // You can add here multiple FMR value
+                   Biometrics["0"] = new Biometric("FMR", isoTemplateFMR, "UNKNOWN", "", "");
+   
+                   var res = GetProtoPidData(Biometrics);
+                   if (res.httpStaus) {
+                       if (res.data.ErrorCode != "0") {
+                           alert(res.data.ErrorDescription);
+                       }
+                       else {
+                           document.getElementById('txtPid').value = res.data.PidData.Pid
+                           document.getElementById('txtSessionKey').value = res.data.PidData.Sessionkey
+                           document.getElementById('txtHmac').value = res.data.PidData.Hmac
+                           document.getElementById('txtCi').value = res.data.PidData.Ci
+                           document.getElementById('txtPidTs').value = res.data.PidData.PidTs
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+   
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+           }
+           function GetRbd() {
+               try {
+                   var isoTemplateFMR = document.getElementById('txtIsoTemplate').value;
+                   var isoImageFIR = document.getElementById('txtIsoImage').value;
+   
+                   var Biometrics = Array();
+                   Biometrics["0"] = new Biometric("FMR", isoTemplateFMR, "LEFT_INDEX", 2, 1);
+                   Biometrics["1"] = new Biometric("FMR", isoTemplateFMR, "LEFT_MIDDLE", 2, 1);
+                   // Here you can pass upto 10 different-different biometric object.
+   
+   
+                   var res = GetRbdData(Biometrics);
+                   if (res.httpStaus) {
+                       if (res.data.ErrorCode != "0") {
+                           alert(res.data.ErrorDescription);
+                       }
+                       else {
+                           document.getElementById('txtPid').value = res.data.RbdData.Rbd
+                           document.getElementById('txtSessionKey').value = res.data.RbdData.Sessionkey
+                           document.getElementById('txtHmac').value = res.data.RbdData.Hmac
+                           document.getElementById('txtCi').value = res.data.RbdData.Ci
+                           document.getElementById('txtPidTs').value = res.data.RbdData.RbdTs
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+   
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+           }
+   
+           function GetProtoRbd() {
+               try {
+                   var isoTemplateFMR = document.getElementById('txtIsoTemplate').value;
+                   var isoImageFIR = document.getElementById('txtIsoImage').value;
+   
+                   var Biometrics = Array();
+                   Biometrics["0"] = new Biometric("FMR", isoTemplateFMR, "LEFT_INDEX", 2, 1);
+                   Biometrics["1"] = new Biometric("FMR", isoTemplateFMR, "LEFT_MIDDLE", 2, 1);
+                   // Here you can pass upto 10 different-different biometric object.
+   
+   
+                   var res = GetProtoRbdData(Biometrics);
+                   if (res.httpStaus) {
+                       if (res.data.ErrorCode != "0") {
+                           alert(res.data.ErrorDescription);
+                       }
+                       else {
+                           document.getElementById('txtPid').value = res.data.RbdData.Rbd
+                           document.getElementById('txtSessionKey').value = res.data.RbdData.Sessionkey
+                           document.getElementById('txtHmac').value = res.data.RbdData.Hmac
+                           document.getElementById('txtCi').value = res.data.RbdData.Ci
+                           document.getElementById('txtPidTs').value = res.data.RbdData.RbdTs
+                       }
+                   }
+                   else {
+                       alert(res.err);
+                   }
+   
+               }
+               catch (e) {
+                   alert(e);
+               }
+               return false;
+           }
+   
+   // opening in full screen by clicking any where on screen
+   // Function to open the webpage in fullscreen
+   function openFullscreen() {
+       var elem = document.documentElement; // Get the document element (whole page)
+   
+       if (elem.requestFullscreen) {
+           elem.requestFullscreen();
+       } else if (elem.mozRequestFullScreen) { // Firefox
+           elem.mozRequestFullScreen();
+       } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+           elem.webkitRequestFullscreen();
+       } else if (elem.msRequestFullscreen) { // IE/Edge
+           elem.msRequestFullscreen();
+       }
+   }
+   
+   // Automatically call the function when the page is loaded, but requires user interaction
+   window.onload = function() {
+       // Trigger fullscreen on user interaction (such as clicking anywhere on the page)
+       document.body.addEventListener('click', function() {
+           openFullscreen();
+       });
+   };
+   
+       </script>
+   
+   
+   
+   <script>
+function status(imgFileName) {
+    // Create the popup div
+    var popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.top = '50%';
+    popup.style.left = '50%';
+popup.style.width = '301px';
+    popup.style.height = '163px';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.backgroundImage = 'url(' + imgFileName + ')';
+ popup.style.backgroundSize = 'cover';  // Ensures the image covers the entire popup
+    popup.style.backgroundPosition = 'center'; // Center the image in the popup
+    
+    popup.style.padding = '20px';
+    popup.style.border = 'none';
+    popup.style.zIndex = '150';
+    popup.style.textAlign = 'center';
+    popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+     popup.style.width = '301px';
+    popup.style.height = '163px';
+   popup.style.alignItems = 'center'; // Centers the button
+
+    
+    setTimeout(function() {
+    // Close the popup
+    document.body.removeChild(popup);
+
+    // Reset the input box text to "12443 - "
+    var inputBox = document.getElementById('inputBox');
+    inputBox.value = '12443 - ';
+}, 2500);  // 2000ms = 1.2 seconds
+    
+
+    // Append the popup to the body
+    document.body.appendChild(popup);
+}
+
+
+function studentid() {
+    var inputBox = document.getElementById('inputBox');
+    inputBox.style.display = 'block'; // Show the input box
+inputBox.focus();
+    inputBox.setSelectionRange(inputBox.value.length, inputBox.value.length);
+ inputBox.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            checkInputLength(); // Call the function to check length when Enter is pressed
+        }
+    });
+}
+
+// Function to check input length and call appropriate function
+function checkInputLength() {
+    var inputBox = document.getElementById('inputBox');
+    var inputLength = inputBox.value.length;
+    
+    if (inputLength === 18) {
+        successmark(); // Call successmark if length is 18
+    } else {
+        errormark(); // Call errormark if length is not 18
+    }
+}
+
+// Function to handle success case
+function successmark() {
+    setTimeout(function() {
+        status('finger.png'); // starts after 0.2 seconds
+    }, 200); // 200 milliseconds = 0.2 seconds
+
+    setTimeout(() => Capture(), 300); // 300 milliseconds = 0.3 seconds
+
+}
+
+
+// Function to handle error case
+function errormark() {
+    status('errorbg.png');
+    // You can add additional styling or actions for error here
+}
+
+
+function showLoadingPopup() {
+    // Create the loading popup element
+    const loadingPopup = document.createElement('div');
+    loadingPopup.id = 'loadingPopup';
+    loadingPopup.style.position = 'fixed';
+    loadingPopup.style.top = '50%';
+    loadingPopup.style.left = '50%';
+    loadingPopup.style.transform = 'translate(-50%, -50%)';
+    loadingPopup.style.padding = '20px';
+  loadingPopup.style.backgroundImage = 'url("load.png")'; // Set the image URL
+    loadingPopup.style.backgroundPosition = 'top right';  // Position the crop to top-right
+    loadingPopup.style.backgroundSize = '120%'; // Scale the image to ensure the crop works
+ 
+    loadingPopup.style.fontSize = '30px';
+loadingPopup.style.outline = '2px solid white';
+    loadingPopup.style.borderRadius = '5px';
+    loadingPopup.textContent = 'Loading..........';
+loadingPopup.style.color = 'white';
+loadingPopup.style.fontWeight = 'bold';
+    // Append the loading popup to the body
+    document.body.appendChild(loadingPopup);
+
+    // Wait for 1 second, then call showSecondPopup()
+    setTimeout(function() {
+        // Remove the loading popup
+        document.body.removeChild(loadingPopup);
+        // Call showSecondPopup function
+        showSecondPopup();
+    }, 1000);
+}
+        function goFullscreen() {
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen();
+            }
+        }
+
+        document.addEventListener("click", function(event) {
+            if (event.clientX <= 200 && event.clientY >= window.innerHeight - 200) {
+                let popup = document.getElementById("popup");
+let showattscreen = document.getElementById("showattscreen");
+                popup.style.position = "absolute"; // Make sure the position is absolute
+popup.style.left = "50%";
+popup.style.top = "50%";
+popup.style.transform = "translate(-50%, -50%)"; // This moves the popup back by half its width and height
+
+                popup.style.width = "752px";  // Adjust width from code
+                popup.style.height = "487px"; // Adjust height from code
+                popup.style.display = "block";
+showattscreen.style.display = "block";
+            }
+        });
+function showSecondPopup() {
+            let popup2 = document.getElementById("popup2");
+popup2.style.position = "absolute"; // Make sure the position is absolute
+popup2.style.left = "50%";
+popup2.style.top = "50%";
+popup2.style.transform = "translate(-50%, -50%)"; // This moves the popup back by half its width and height
+
+                popup2.style.width = "752px";  // Adjust width from code
+                popup2.style.height = "487px"; // Adjust height from code
+ 
+            popup2.style.display = "block";
+showattscreen.style.display = "none";
+studentid();
+        }
+    </script>
+</body>
+</html>
